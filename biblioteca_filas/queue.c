@@ -32,7 +32,7 @@ int queue_size (queue_t *queue) {
 
 void queue_print (char *name, queue_t *queue, void print_elem (void*) ){
     if (queue==NULL)
-      return 0;
+      return;
     queue_t *aux = queue;
 
     do{
@@ -50,7 +50,30 @@ void queue_print (char *name, queue_t *queue, void print_elem (void*) ){
 // Retorno: 0 se sucesso, <0 se ocorreu algum erro
 
 int queue_append (queue_t **queue, queue_t *elem){
-
+    if (queue == NULL){
+      printf("Fila não existe\n");
+        return -1;
+    }
+    if(elem==NULL){
+      printf("Elemento não existe\n");
+      return -1;
+    }
+    if(elem->next!=NULL || elem->prev!=NULL){
+      printf("Elemento pertence a outra fila\n");
+      return -1;
+    }
+    if ((*queue) == NULL){
+      (*queue) = elem;
+      (*queue)->next = (*queue);
+      (*queue)->prev = (*queue);
+    }
+    else{
+      elem->next = (*queue)->next;
+      elem->prev = (*queue);
+      (*queue)->next->prev = elem;
+      (*queue)->next = elem;
+    }
+    return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -62,4 +85,31 @@ int queue_append (queue_t **queue, queue_t *elem){
 // - o elemento deve pertencer a fila indicada
 // Retorno: 0 se sucesso, <0 se ocorreu algum erro
 
-int queue_remove (queue_t **queue, queue_t *elem) ;
+int queue_remove (queue_t **queue, queue_t *elem){
+  if(queue==NULL){
+    printf("Fila não existe\n");
+    return -1;
+  }
+  if((*queue)==NULL){
+    printf("Fila vazia\n");
+    return -1;
+  }
+  if(elem==NULL){
+    printf("Elemento não existe\n");
+    return -1;
+  }
+  queue_t *aux = (*queue);
+  do{
+    aux = aux->next;
+  }while(aux!=elem && aux!=(*queue));
+  if(aux!=elem){
+    printf("Elemento não existe a esta lista");
+    return -1;
+  }
+  if(aux==aux->next){
+    (*queue) = NULL;
+  }
+  aux->prev->next = aux->next;
+  aux->next->prev = aux->prev;
+  return 0;  
+}
