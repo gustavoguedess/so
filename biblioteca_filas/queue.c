@@ -16,8 +16,8 @@ int queue_size (queue_t *queue) {
   queue_t *aux = queue;
   int size = 1;
 
-  while(aux->prox!=queue){
-    aux = aux->prox;
+  while(aux->next!=queue){
+    aux = aux->next;
     size+=1;
   }
   return size;
@@ -111,5 +111,5 @@ int queue_remove (queue_t **queue, queue_t *elem){
   }
   aux->prev->next = aux->next;
   aux->next->prev = aux->prev;
-  return 0;  
+  return 0;
 }
