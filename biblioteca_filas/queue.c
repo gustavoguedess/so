@@ -68,10 +68,10 @@ int queue_append (queue_t **queue, queue_t *elem){
       (*queue)->prev = (*queue);
     }
     else{
-      elem->next = (*queue)->next;
-      elem->prev = (*queue);
-      (*queue)->next->prev = elem;
-      (*queue)->next = elem;
+      elem->next = (*queue);
+      elem->prev = (*queue)->prev;
+      (*queue)->prev->next = elem;
+      (*queue)->prev = elem;
     }
     return 0;
 }
@@ -99,17 +99,28 @@ int queue_remove (queue_t **queue, queue_t *elem){
     return -1;
   }
   queue_t *aux = (*queue);
-  do{
+  while(aux!=elem && aux->next!=(*queue)){
     aux = aux->next;
-  }while(aux!=elem && aux!=(*queue));
+  }
   if(aux!=elem){
-    printf("Elemento não existe a esta lista");
+    printf("Elemento não existe nesta lista");
     return -1;
   }
+
   if(aux==aux->next){
     (*queue) = NULL;
   }
-  aux->prev->next = aux->next;
-  aux->next->prev = aux->prev;
+  else{
+    aux->prev->next = aux->next;
+    aux->next->prev = aux->prev;
+
+    if(aux==(*queue)){
+      (*queue)=aux->next;
+    }
+  }
+
+  aux->next = NULL;
+  aux->prev = NULL;
+
   return 0;
 }

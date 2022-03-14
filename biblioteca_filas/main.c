@@ -10,4 +10,5 @@ int main(){
   queue_append(&fila, elem);
   printf("%d\n", queue_size(fila));
   queue_remove(&fila, elem);
+
 }

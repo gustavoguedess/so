@@ -1,7 +1,7 @@
 all: compile
 
 compile:
-	gcc queue.c queue.h main.c
+	gcc queue.c queue.h testafila.c
 
 run:
 	./a.out
