@@ -31,14 +31,16 @@ int queue_size (queue_t *queue) {
 // void print_elem (void *ptr) ; // ptr aponta para o elemento a imprimir
 
 void queue_print (char *name, queue_t *queue, void print_elem (void*) ){
-    if (queue==NULL)
-      return;
     queue_t *aux = queue;
 
-    do{
+    printf("[");
+    while(aux){
       print_elem(aux);
       aux = aux->next;
-    }while(aux!=queue);
+      if(aux==queue) aux = NULL;
+      else printf(" ");
+    }
+    printf("]\n");
 }
 
 //------------------------------------------------------------------------------
