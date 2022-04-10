@@ -1,7 +1,6 @@
 run:
-
 	cc -Wall -c -o ppos_core.o ppos_core.c
-	cc -Wall -c -o queue.o queue.c
+	cc -Wall -c -o queue.o queue.c 
 	
 	cc -Wall -c -o pingpong-tasks1.o pingpong-tasks1.c
 	cc -Wall -c -o pingpong-tasks2.o pingpong-tasks2.c
@@ -26,4 +25,6 @@ debug:
 purge:
 	rm -f *.o
 	rm -f a.out
-	rm -f pingpong-tasks{1,2,3}
+	rm -f pingpong-tasks1
+	rm -f pingpong-tasks2
+	rm -f pingpong-tasks3
