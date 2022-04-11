@@ -105,7 +105,7 @@ int queue_remove (queue_t **queue, queue_t *elem){
     aux = aux->next;
   }
   if(aux!=elem){
-    printf("Elemento não existe nesta lista");
+    printf("Elemento não existe nesta lista\n");
     return -1;
   }
 

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include "ppos.h"
 
-#define MAXTASK 5
+#define MAXTASK 1000
 
 task_t task[MAXTASK+1] ;
 
