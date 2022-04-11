@@ -33,3 +33,4 @@ purge:
 	rm -f pingpong-tasks1
 	rm -f pingpong-tasks2
 	rm -f pingpong-tasks3
+	rm -f pingpong-dispatcher

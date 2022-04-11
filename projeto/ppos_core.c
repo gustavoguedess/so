@@ -29,13 +29,16 @@ void ppos_init(){
 
     task_t main;
     task_create(&main, dispatcher, "main");
+    main.system_task = 1;
 
     task_create(&dispatcher_task, dispatcher, "Dispatcher");
+    dispatcher_task.system_task=1;
 
     current = fila;
 
     #ifdef DEBUG
         printf("DEBUG task_init: Iniciado com sucesso\n");
+        printf("DEBUG main id: %d system task: %d\n", fila->id, fila->system_task);
     #endif
 }
 
@@ -63,6 +66,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg){
     task->id = next_id++;
     task->prev = NULL;
     task->next = NULL;
+    task->system_task = 0;
     task->status = 0;
     //task->preemptable = 0;
 
@@ -107,21 +111,33 @@ int task_id (){
 
 task_t* scheduler(){
     task_t* aux = (&dispatcher_task)->next;
-    while(aux->id<2) aux = aux->next;
+    while(aux->system_task==1) aux = aux->next;
     return aux;
 }
 
 void task_yield(){
-    queue_remove((queue_t**)&fila, (queue_t*)current);
-    queue_append((queue_t**)&fila, (queue_t*)current);
+    if(current->system_task==0){
+        queue_remove((queue_t**)&fila, (queue_t*)current);
+        queue_append((queue_t**)&fila, (queue_t*)current);
+    }
     task_switch(&dispatcher_task);
 }
 
+short has_task(){
+    task_t* aux = fila;
+    short has_task=0;
+    do{
+        if (aux->system_task==0) has_task=1;
+        aux = aux->next;
+    }while(aux!=fila);
+
+    return has_task;
+}
 void dispatcher (){
     
     task_t *next;
     
-    while( queue_size((queue_t*)fila)>2 ){
+    while( has_task() ){
         next = scheduler();
         if(next != NULL){
             task_switch(next);
