@@ -29,16 +29,16 @@ void ppos_init(){
 
     task_t main;
     task_create(&main, dispatcher, "main");
-    main.system_task = 1;
+    main.system = 1;
 
     task_create(&dispatcher_task, dispatcher, "Dispatcher");
-    dispatcher_task.system_task=1;
+    dispatcher_task.system=1;
 
     current = fila;
 
     #ifdef DEBUG
         printf("DEBUG task_init: Iniciado com sucesso\n");
-        printf("DEBUG main id: %d system task: %d\n", fila->id, fila->system_task);
+        printf("DEBUG main id: %d system task: %d\n", fila->id, fila->system);
     #endif
 }
 
@@ -66,14 +66,16 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg){
     task->id = next_id++;
     task->prev = NULL;
     task->next = NULL;
-    task->system_task = 0;
+    task->system = 0;
+    task->pe = 0;
+    task->pd = 0;
     task->status = 0;
     //task->preemptable = 0;
 
     queue_append((queue_t **) &fila, (queue_t*) task);
 
     #ifdef DEBUG
-    printf("DEBUG task_create: criou a tarefa %d\n", task->id);
+        printf("DEBUG task_create: criou a tarefa %d\n", task->id);
     #endif
 
     return 0;
@@ -101,7 +103,11 @@ void task_exit(int exit_code){
     #endif
 
     queue_remove((queue_t**) &fila, (queue_t*) current);
-    task_switch(fila);
+    if(current==&dispatcher_task)
+        task_switch(fila);
+    else{
+        task_switch(&dispatcher_task);
+    }
 }
 
 int task_id (){
@@ -109,16 +115,34 @@ int task_id (){
     return current->id;
 }
 
+void print_elem(task_t *task){
+    printf("%d:%d/%d", task->id, task->pe, task->pd);
+}
+
 task_t* scheduler(){
-    task_t* aux = (&dispatcher_task)->next;
-    while(aux->system_task==1) aux = aux->next;
-    return aux;
+    task_t* next_task = NULL;
+    task_t* aux = fila;
+    int alpha = -1;
+
+    do{
+        if(aux->system==0) {
+            aux->pd+=alpha;
+            if(next_task==NULL) next_task = aux;
+            if(aux->pd < next_task->pd ) next_task = aux;
+        }
+        aux = aux->next;
+    }while(aux!=fila);
+
+    #ifdef DEBUG
+        queue_print("", (queue_t*)fila, (void *)print_elem);
+    #endif
+
+    return next_task;
 }
 
 void task_yield(){
-    if(current->system_task==0){
-        queue_remove((queue_t**)&fila, (queue_t*)current);
-        queue_append((queue_t**)&fila, (queue_t*)current);
+    if(current->system==0){
+        task_setprio(current, current->pe);
     }
     task_switch(&dispatcher_task);
 }
@@ -127,7 +151,7 @@ short has_task(){
     task_t* aux = fila;
     short has_task=0;
     do{
-        if (aux->system_task==0) has_task=1;
+        if (aux->system==0) has_task=1;
         aux = aux->next;
     }while(aux!=fila);
 
@@ -158,4 +182,22 @@ void dispatcher (){
     
     
     task_exit(0);
+}
+
+void task_setprio (task_t *task, int prio) {
+    if(task==NULL){
+        current->pe = prio;
+        current->pd = prio;
+    }
+    else{
+        task->pe = prio;
+        task->pd = prio;
+    }
+
+}
+
+int task_getprio (task_t *task){
+    if (task==NULL)
+        return current->pe;
+    return task->pe;
 }
