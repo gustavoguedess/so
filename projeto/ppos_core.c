@@ -5,14 +5,36 @@
 #include<stdlib.h>
 #include<stdio.h>
 
-task_t *fila, *current;
-task_t dispatcher_task;
+#include <signal.h>
+#include <sys/time.h>
+
+task_t *fila, *current_task;
+task_t dispatcher_task, main_task;
 int next_id;
 
 #define STACKSIZE 64*1024	/* tamanho de pilha das threads */
 
+struct sigaction action ;
+struct itimerval timer;
+
+int tick, quantum;
+
 void dispatcher ();
 
+void tick_handler(int signum){
+    tick--;
+    #ifdef DEBUG
+        printf("INTERROMPI!!! tick: %d  task: %d system: %d\n", tick, current_task->id, current_task->system);
+    #endif
+
+    if(current_task->system==1){
+        tick = quantum;
+    }
+    else if(!tick){
+        tick = quantum;
+        task_yield();
+    }
+}
 /* Inicializa o sistema*/
 void ppos_init(){
     setvbuf (stdout, 0, _IONBF, 0);
@@ -24,23 +46,43 @@ void ppos_init(){
 
 
     fila = NULL;
-    current = NULL;
+    current_task = NULL;
     next_id = 0;
 
-    task_t main;
-    task_create(&main, dispatcher, "main");
-    main.system = 1;
+    task_create(&main_task, dispatcher, "main");
+    main_task.system = 1;
 
     task_create(&dispatcher_task, dispatcher, "Dispatcher");
     dispatcher_task.system=1;
 
-    current = fila;
+    current_task = fila;
+
+    quantum = 20;
+    tick = quantum;
+
+    action.sa_handler = tick_handler;
+    sigemptyset (&action.sa_mask);
+    action.sa_flags = 0;
+    if(sigaction (SIGALRM, &action, 0) < 0){
+        perror("Erro em sigaction: ");
+        exit(1);
+    }
+    timer.it_value.tv_usec = 1000;
+    timer.it_value.tv_sec = 0;
+    timer.it_interval.tv_usec = 1000;
+    timer.it_interval.tv_sec = 0;
+
+    if(setitimer (ITIMER_REAL, &timer, 0)<0){
+        perror("Erro em setitimer: ");
+        exit(1);
+    }
 
     #ifdef DEBUG
         printf("DEBUG task_init: Iniciado com sucesso\n");
         printf("DEBUG main id: %d system task: %d\n", fila->id, fila->system);
     #endif
 }
+
 
 /*Cria uma nova tarefa*/
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg){
@@ -86,10 +128,10 @@ int task_switch(task_t *task){
 
     
     #ifdef DEBUG
-        printf("DEBUG task_switch: Trocando de contexto da tarefa %d para %d\n", current->id, task->id);
+        printf("DEBUG task_switch: Trocando de contexto da tarefa %d para %d\n", current_task->id, task->id);
     #endif
-    task_t *aux = current;
-    current = task;
+    task_t *aux = current_task;
+    current_task = task;
     swapcontext (&aux->context, &task->context);
 
     return 0;
@@ -99,11 +141,11 @@ int task_switch(task_t *task){
 /* Finaliza a tarefa exit_code*/
 void task_exit(int exit_code){
     #ifdef DEBUG
-        printf("DEBUG task_exit: Finalizando a tarefa %d\n", current->id);
+        printf("DEBUG task_exit: Finalizando a tarefa %d\n", current_task->id);
     #endif
 
-    queue_remove((queue_t**) &fila, (queue_t*) current);
-    if(current==&dispatcher_task)
+    queue_remove((queue_t**) &fila, (queue_t*) current_task);
+    if(current_task==&dispatcher_task)
         task_switch(fila);
     else{
         task_switch(&dispatcher_task);
@@ -111,8 +153,8 @@ void task_exit(int exit_code){
 }
 
 int task_id (){
-    if(current==NULL) return -1;
-    return current->id;
+    if(current_task==NULL) return -1;
+    return current_task->id;
 }
 
 void print_elem(task_t *task){
@@ -141,8 +183,8 @@ task_t* scheduler(){
 }
 
 void task_yield(){
-    if(current->system==0){
-        task_setprio(current, current->pe);
+    if(current_task->system==0){
+        task_setprio(current_task, current_task->pe);
     }
     task_switch(&dispatcher_task);
 }
@@ -186,8 +228,8 @@ void dispatcher (){
 
 void task_setprio (task_t *task, int prio) {
     if(task==NULL){
-        current->pe = prio;
-        current->pd = prio;
+        current_task->pe = prio;
+        current_task->pd = prio;
     }
     else{
         task->pe = prio;
@@ -198,6 +240,6 @@ void task_setprio (task_t *task, int prio) {
 
 int task_getprio (task_t *task){
     if (task==NULL)
-        return current->pe;
+        return current_task->pe;
     return task->pe;
 }

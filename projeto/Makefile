@@ -16,6 +16,13 @@ run:
 
 	cc -Wall -c -o pingpong-tasks4.o pingpong-scheduler.c
 	cc pingpong-tasks4.o ppos_core.o queue.o -o pingpong-scheduler
+
+	cc -Wall -c -o pingpong-preempcao.o pingpong-preempcao.c
+	cc pingpong-preempcao.o ppos_core.o queue.o -o pingpong-preempcao
+
+	cc -Wall -c -o pingpong-preempcao-stress.o pingpong-preempcao-stress.c
+	cc pingpong-preempcao-stress.o ppos_core.o queue.o -o pingpong-preempcao-stress
+
 debug:
 	cc -Wall -DDEBUG -g -c -o ppos_core.o ppos_core.c
 	cc -Wall -DDEBUG -g -c -o queue.o queue.c
@@ -34,6 +41,12 @@ debug:
 
 	cc -Wall -DDEBUG -g -c -o pingpong-scheduler.o pingpong-scheduler.c
 	cc pingpong-scheduler.o ppos_core.o queue.o -o pingpong-scheduler
+
+	cc -Wall -DDEBUG -g -c -o pingpong-preempcao.o pingpong-preempcao.c
+	cc pingpong-preempcao.o ppos_core.o queue.o -o pingpong-preempcao
+
+	cc -Wall -DDEBUG -g -c -o pingpong-preempcao-stress.o pingpong-preempcao-stress.c
+	cc pingpong-preempcao-stress.o ppos_core.o queue.o -o pingpong-preempcao-stress
 	
 purge:
 	rm -f *.o
@@ -43,3 +56,6 @@ purge:
 	rm -f pingpong-tasks3
 	rm -f pingpong-dispatcher
 	rm -f pingpong-scheduler
+	rm -f signal
+	rm -f pingpong-preempcao
+	rm -f pingpong-preempcao-stress
