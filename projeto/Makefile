@@ -23,6 +23,12 @@ run:
 	cc -Wall -c -o pingpong-preempcao-stress.o pingpong-preempcao-stress.c
 	cc pingpong-preempcao-stress.o ppos_core.o queue.o -o pingpong-preempcao-stress
 
+	cc -Wall -c -o pingpong-contab.o pingpong-contab.c
+	cc pingpong-contab.o ppos_core.o queue.o -o pingpong-contab
+
+	cc -Wall -c -o pingpong-contab-prio.o pingpong-contab-prio.c
+	cc pingpong-contab-prio.o ppos_core.o queue.o -o pingpong-contab-prio
+
 debug:
 	cc -Wall -DDEBUG -g -c -o ppos_core.o ppos_core.c
 	cc -Wall -DDEBUG -g -c -o queue.o queue.c
@@ -47,6 +53,12 @@ debug:
 
 	cc -Wall -DDEBUG -g -c -o pingpong-preempcao-stress.o pingpong-preempcao-stress.c
 	cc pingpong-preempcao-stress.o ppos_core.o queue.o -o pingpong-preempcao-stress
+
+	cc -Wall -DDEBUG -g -c -o pingpong-contab.o pingpong-contab.c
+	cc pingpong-contab.o ppos_core.o queue.o -o pingpong-contab
+
+	cc -Wall -DDEBUG -g -c -o pingpong-contab-prio.o pingpong-contab-prio.c
+	cc pingpong-contab-prio.o ppos_core.o queue.o -o pingpong-contab-prio
 	
 purge:
 	rm -f *.o
@@ -59,3 +71,5 @@ purge:
 	rm -f signal
 	rm -f pingpong-preempcao
 	rm -f pingpong-preempcao-stress
+	rm -f pingpong-contab
+	rm -f pingpong-contab-prio

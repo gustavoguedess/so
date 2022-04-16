@@ -18,7 +18,7 @@ struct sigaction action ;
 struct itimerval timer;
 
 int tick, quantum;
-
+int current_time;
 void dispatcher ();
 
 void tick_handler(int signum){
@@ -26,7 +26,8 @@ void tick_handler(int signum){
     #ifdef DEBUG
         printf("INTERROMPI!!! tick: %d  task: %d system: %d\n", tick, current_task->id, current_task->system);
     #endif
-
+    current_task->ticks++;
+    current_time++;
     if(current_task->system==1){
         tick = quantum;
     }
@@ -35,6 +36,7 @@ void tick_handler(int signum){
         task_yield();
     }
 }
+
 /* Inicializa o sistema*/
 void ppos_init(){
     setvbuf (stdout, 0, _IONBF, 0);
@@ -59,6 +61,7 @@ void ppos_init(){
 
     quantum = 20;
     tick = quantum;
+    current_time = 0;
 
     action.sa_handler = tick_handler;
     sigemptyset (&action.sa_mask);
@@ -113,6 +116,10 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg){
     task->pd = 0;
     task->status = 0;
     //task->preemptable = 0;
+    task->start = systime();
+    task->ticks = 0;
+    task->activations = 0;
+    task->end = NULL;
 
     queue_append((queue_t **) &fila, (queue_t*) task);
 
@@ -132,6 +139,7 @@ int task_switch(task_t *task){
     #endif
     task_t *aux = current_task;
     current_task = task;
+    task->activations++;
     swapcontext (&aux->context, &task->context);
 
     return 0;
@@ -143,8 +151,9 @@ void task_exit(int exit_code){
     #ifdef DEBUG
         printf("DEBUG task_exit: Finalizando a tarefa %d\n", current_task->id);
     #endif
-
     queue_remove((queue_t**) &fila, (queue_t*) current_task);
+    current_task->end = systime();
+    printf("Task %d exit: execution time %d ms, processor time %d ms, %d activations\n", current_task->id, current_task->end-current_task->start, current_task->ticks, current_task->activations);
     if(current_task==&dispatcher_task)
         task_switch(fila);
     else{
@@ -242,4 +251,8 @@ int task_getprio (task_t *task){
     if (task==NULL)
         return current_task->pe;
     return task->pe;
+}
+
+unsigned int systime () {
+    return current_time;    
 }

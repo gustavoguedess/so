@@ -20,6 +20,10 @@ typedef struct task_t
   short status ;			// pronta, rodando, suspensa, ...
   short preemptable ;			// pode ser preemptada?
    // ... (outros campos serão adicionados mais tarde)
+  unsigned int start;
+  unsigned int end; 
+  unsigned int ticks;
+  unsigned int activations;
 } task_t ;
 
 // estrutura que define um semáforo
