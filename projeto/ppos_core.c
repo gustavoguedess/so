@@ -24,7 +24,7 @@ void dispatcher ();
 void tick_handler(int signum){
     tick--;
     #ifdef DEBUG
-        printf("INTERROMPI!!! tick: %d  task: %d system: %d\n", tick, current_task->id, current_task->system);
+        //printf("INTERROMPI!!! tick: %d  task: %d system: %d\n", tick, current_task->id, current_task->system);
     #endif
     current_task->ticks++;
     current_time++;
@@ -52,7 +52,6 @@ void ppos_init(){
     next_id = 0;
 
     task_create(&main_task, dispatcher, "main");
-    main_task.system = 1;
 
     task_create(&dispatcher_task, dispatcher, "Dispatcher");
     dispatcher_task.system=1;
@@ -119,7 +118,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg){
     task->start = systime();
     task->ticks = 0;
     task->activations = 0;
-    task->end = NULL;
+    task->end = 0;
 
     queue_append((queue_t **) &fila, (queue_t*) task);
 
@@ -154,11 +153,9 @@ void task_exit(int exit_code){
     queue_remove((queue_t**) &fila, (queue_t*) current_task);
     current_task->end = systime();
     printf("Task %d exit: execution time %d ms, processor time %d ms, %d activations\n", current_task->id, current_task->end-current_task->start, current_task->ticks, current_task->activations);
-    if(current_task==&dispatcher_task)
-        task_switch(fila);
-    else{
+    if(current_task!=&dispatcher_task)
         task_switch(&dispatcher_task);
-    }
+    
 }
 
 int task_id (){
