@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <semaphore.h>
 #include "../filas/queue.c"
 
@@ -37,18 +38,33 @@ void poe_elemento_no_fim_da_fila(int n){
 
 void print_fila(){
     elemint_t *current = buffer;
-    do{
+    printf("[ ");
+    while(current){
         printf("%d ", current->id);
         current = current->next;
-    }while(current!=buffer);
-    printf("\n");
+        if(current==buffer) current = NULL;
+    }
+    printf("]\n");
 }
 
 void* produtor(void *id){
+    printf("\tPRODUTOR\n");
     int pause, item;
     while(true){
+        sem_wait(&s_vaga);
+        // Produz
         pause = rand()%3;
         sleep(pause);
+        item = rand()%100;
+
+        // Coloca
+        sem_wait(&s_buffer);
+        poe_elemento_no_fim_da_fila(item);
+        printf("produtor %ld\tproduziu %d -> ", (long int)id, item);
+        print_fila();
+        sem_post(&s_buffer);
+
+        sem_post(&s_item);
     }
 
     pthread_exit (NULL) ;
@@ -56,6 +72,22 @@ void* produtor(void *id){
 void* consumidor(void *id){
     printf("\tCONSUMIDOR\n");
 
+    int pause, item;
+    while(true){
+        sem_wait(&s_item);
+        // Retira
+        sem_wait(&s_buffer);
+        item = retira_primeiro_elemento_da_fila();
+        printf("consumidor %ld\tconsumiu %d -> ", (long int)id, item);
+        print_fila();
+        sem_post(&s_buffer);
+
+        // Consume
+        pause = rand()%3;
+        sleep(pause);
+
+        sem_post(&s_vaga);
+    }
     pthread_exit (NULL) ;
 }
 
@@ -93,8 +125,8 @@ int main (int argc, char *argv[])
     pthread_t thread_consumidores [NUM_CONSUMIDORES] ;
     
     sem_init (&s_buffer, 0, 1) ;
-    sem_init (&s_item, 0, 1) ;
-    sem_init (&s_vaga, 0, 1) ;
+    sem_init (&s_item, 0, 0) ;
+    sem_init (&s_vaga, 0, 5) ;
 
 
     pthread_attr_t attr ;
