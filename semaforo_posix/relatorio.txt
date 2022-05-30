@@ -1,0 +1,7 @@
+
+Jantar dos filósofos
+    Solução trivial temos 1~8 refeições por segundo, em média umas 3. Após um tempo rodando todos os filósofos pegaram um hashi e ninguém consegue comer.
+
+    Solução com saleiro resolveu o problema de ninguém mais comer. Porém ficou levemente menor a média de refeição por segundo 
+
+    Outra solução foi criar estados para cada filosofo e fazer a checagem se os vizinhos estão comendo. Isso melhorou o desempenho, a média de refeição ficou em 4 refeições por segundo.
